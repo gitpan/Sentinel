@@ -1,0 +1,75 @@
+NAME
+    "Sentinel" - create lightweight SCALARs with get/set callbacks
+
+SYNOPSIS
+     package Some::Class;
+
+     use Sentinel;
+
+     sub attribute_name :lvalue
+     {
+        my $self = shift;
+        ${ \sentinel get => sub { return $self->get_attribute_name },
+                     set => sub { $self->set_attribute_name( $_[0] ) } };
+     }
+
+     sub another_attribute :lvalue
+     {
+        my $self = shift;
+        ${ \sentinel value => $self->get_another_attribute,
+                     set   => sub { $self->set_attribute_name( $_[0] ) } };
+     }
+
+DESCRIPTION
+    This module provides a single lvalue function, "sentinel", which yields
+    a scalar that invoke callbacks to get or set its value. Primarily this
+    is useful to create lvalue object accessors or other functions, to
+    invoke actual code when a new value is set, rather than simply updating
+    a scalar variable.
+
+FUNCTIONS
+  $scalar = sentinel %args
+    Returns (as an lvalue) a scalar with magic attached to it. This magic is
+    used to get the value of the scalar, or to inform of a new value being
+    set, by invoking callback functions supplied to the sentinel. Takes the
+    following named arguments:
+
+    get => CODE
+            A "CODE" reference to invoke when the value of the scalar is
+            read, to obtain its value. The value returned from this code
+            will appear as the value of the scalar.
+
+    set => CODE
+            A "CODE" reference to invoke when a new value for the scalar is
+            written. The code will be passed the new value as its only
+            argument.
+
+    value => SCALAR
+            If no "get" callback is provided, this value is given as the
+            initial value of the scalar. If the scalar manages to survive
+            longer than a single assignment, its value on read will retain
+            the last value set to it.
+
+    The slightly awkward reference/dereference syntax of "${ \sentinel ...
+    }" works around an as-yet-unresolved issue that, without it, an error is
+    raised at runtime. See the "TODO" section below.
+
+TODO
+    *   See if the awkward reference/dereference construct can be removed,
+        yielding a neater syntax of
+
+         sub foo :lvalue { sentinel get => ..., set => ...; }
+
+        Currently this fails with the error
+
+         Can't return a temporary from lvalue subroutine at ...
+
+    *   Add an "obj" argument passed as the first argument to a "get" or
+        "set" callback, so that plain function references can be stored,
+        further reducing the overhead to avoid creating temporary closures.
+
+         sentinel obj => $self, get => \&get_foo, set => \&set_foo;
+
+AUTHOR
+    Paul Evans <leonerd@leonerd.org.uk>
+
