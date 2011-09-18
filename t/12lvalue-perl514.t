@@ -3,7 +3,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More;
+plan skip_all => "lvalue context return requires perl 5.14" if $] < 5.014;
+plan tests => 6;
 
 package TestObject;
 use Sentinel;
@@ -16,9 +18,9 @@ sub set_foo { $_[0]->{foo} = $_[1] }
 sub foo :lvalue
 {
    my $self = shift;
-   ${ \sentinel obj => $self, 
-                get => \&get_foo,
-                set => \&set_foo }
+   sentinel obj => $self, 
+            get => \&get_foo,
+            set => \&set_foo;
 }
 
 package main;

@@ -9,23 +9,23 @@ SYNOPSIS
      sub attribute_name :lvalue
      {
         my $self = shift;
-        ${ \sentinel get => sub { return $self->get_attribute_name },
-                     set => sub { $self->set_attribute_name( $_[0] ) } };
+        sentinel get => sub { return $self->get_attribute_name },
+                 set => sub { $self->set_attribute_name( $_[0] ) };
      }
 
      sub another_attribute :lvalue
      {
         my $self = shift;
-        ${ \sentinel value => $self->get_another_attribute,
-                     set   => sub { $self->set_attribute_name( $_[0] ) } };
+        sentinel value => $self->get_another_attribute,
+                 set   => sub { $self->set_attribute_name( $_[0] ) };
      }
 
      sub yet_another_attribute :lvalue
      {
         my $self = shift;
-        ${ \sentinel obj => $self,
-                     get => \&get_attr,
-                     set => \&set_attr };
+        sentinel obj => $self,
+                 get => \&get_another_attribute,
+                 set => \&set_another_attribute;
      }
 
 DESCRIPTION
@@ -66,19 +66,28 @@ FUNCTIONS
             This avoids the runtime overhead of creating lots of small
             one-use closures around the object.
 
-    The slightly awkward reference/dereference syntax of "${ \sentinel ...
-    }" works around an as-yet-unresolved issue that, without it, an error is
-    raised at runtime. See the "TODO" section below.
+   Important note
+    The syntax used in the SYNOPSIS only works on perl version 5.14 and
+    above. Before version 5.14, the lvalue context is not properly
+    propagated through nested lvalue functions and instead it dies at
+    runtime with an exception
 
-TODO
-    *   See if the awkward reference/dereference construct can be removed,
-        yielding a neater syntax of
+     Can't return a temporary from lvalue subroutine at ...
 
-         sub foo :lvalue { sentinel get => ..., set => ...; }
+    To be compatible with prior versions of perl, you must instead write a
+    slightly more awkward syntax, taking a "SCALAR" ref to the sentinel
+    return value then immediately dereferencing it again:
 
-        Currently this fails with the error
+     sub attribute_name :lvalue
+     {
+        my $self = shift;
+        ${ \sentinel get => sub { return $self->get_attribute_name },
+                     set => sub { $self->set_attribute_name( $_[0] ) } };
+     }
 
-         Can't return a temporary from lvalue subroutine at ...
+    This is purely a workaround for older perl behaviour; if you do not need
+    backward compatibility before perl 5.14, then you can yield "sentinel"
+    directly from an ":lvalue" function.
 
 AUTHOR
     Paul Evans <leonerd@leonerd.org.uk>

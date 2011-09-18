@@ -8,7 +8,7 @@ package Sentinel;
 use strict;
 use warnings;
 
-our $VERSION = '0.01_002';
+our $VERSION = '0.01_003';
 
 use Exporter 'import';
 our @EXPORT = qw( sentinel );
@@ -29,23 +29,23 @@ C<Sentinel> - create lightweight SCALARs with get/set callbacks
  sub attribute_name :lvalue
  {
     my $self = shift;
-    ${ \sentinel get => sub { return $self->get_attribute_name },
-                 set => sub { $self->set_attribute_name( $_[0] ) } };
+    sentinel get => sub { return $self->get_attribute_name },
+             set => sub { $self->set_attribute_name( $_[0] ) };
  }
 
  sub another_attribute :lvalue
  {
     my $self = shift;
-    ${ \sentinel value => $self->get_another_attribute,
-                 set   => sub { $self->set_attribute_name( $_[0] ) } };
+    sentinel value => $self->get_another_attribute,
+             set   => sub { $self->set_attribute_name( $_[0] ) };
  }
 
  sub yet_another_attribute :lvalue
  {
     my $self = shift;
-    ${ \sentinel obj => $self,
-                 get => \&get_attr,
-                 set => \&set_attr };
+    sentinel obj => $self,
+             get => \&get_another_attribute,
+             set => \&set_another_attribute;
  }
 
 =head1 DESCRIPTION
@@ -95,28 +95,28 @@ of small one-use closures around the object.
 
 =back
 
-The slightly awkward reference/dereference syntax of C<${ \sentinel ... }>
-works around an as-yet-unresolved issue that, without it, an error is raised
-at runtime. See the C<TODO> section below.
+=head3 Important note
 
-=cut
-
-=head1 TODO
-
-=over 4
-
-=item *
-
-See if the awkward reference/dereference construct can be removed, yielding a
-neater syntax of
-
- sub foo :lvalue { sentinel get => ..., set => ...; }
-
-Currently this fails with the error
+The syntax used in the B<SYNOPSIS> only works on perl version 5.14 and above.
+Before version 5.14, the lvalue context is not properly propagated through
+nested lvalue functions and instead it dies at runtime with an exception
 
  Can't return a temporary from lvalue subroutine at ...
 
-=back
+To be compatible with prior versions of perl, you must instead write a
+slightly more awkward syntax, taking a C<SCALAR> ref to the sentinel return
+value then immediately dereferencing it again:
+
+ sub attribute_name :lvalue
+ {
+    my $self = shift;
+    ${ \sentinel get => sub { return $self->get_attribute_name },
+                 set => sub { $self->set_attribute_name( $_[0] ) } };
+ }
+
+This is purely a workaround for older perl behaviour; if you do not need
+backward compatibility before perl 5.14, then you can yield C<sentinel>
+directly from an C<:lvalue> function.
 
 =cut
 
