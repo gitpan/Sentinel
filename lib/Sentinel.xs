@@ -28,6 +28,8 @@ static int magic_get(pTHX_ SV *sv, MAGIC *mg)
     SAVETMPS;
 
     PUSHMARK(SP);
+    if(mg->mg_obj)
+      PUSHs(mg->mg_obj);
     PUTBACK;
 
     count = call_sv(ctx->get_cb, G_SCALAR);
@@ -54,6 +56,8 @@ static int magic_set(pTHX_ SV *sv, MAGIC *mg)
     SAVETMPS;
 
     PUSHMARK(SP);
+    if(mg->mg_obj)
+      PUSHs(mg->mg_obj);
     PUSHs(sv);
     PUTBACK;
 
@@ -99,6 +103,7 @@ sentinel(...)
     SV *value = NULL;
     SV *get_cb = NULL;
     SV *set_cb = NULL;
+    SV *obj = NULL;
 
   CODE:
     /* Parse name => value argument pairs */
@@ -110,10 +115,13 @@ sentinel(...)
         value = argvalue;
       }
       else if(streq(argname, "get")) {
-        get_cb = SvREFCNT_inc(argvalue);
+        get_cb = newSVsv(argvalue);
       }
       else if(streq(argname, "set")) {
-        set_cb = SvREFCNT_inc(argvalue);
+        set_cb = newSVsv(argvalue);
+      }
+      else if(streq(argname, "obj")) {
+        obj = argvalue;
       }
       else {
         fprintf(stderr, "Argument %s at %p\n", argname, argvalue);
@@ -132,7 +140,10 @@ sentinel(...)
       ctx->get_cb = get_cb;
       ctx->set_cb = set_cb;
 
-      sv_magicext(RETVAL, NULL, PERL_MAGIC_ext, &vtbl, (char *)ctx, 0);
+      if(obj)
+        obj = sv_mortalcopy(obj);
+
+      sv_magicext(RETVAL, obj, PERL_MAGIC_ext, &vtbl, (char *)ctx, 0);
     }
 
   OUTPUT:

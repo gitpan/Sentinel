@@ -1,4 +1,8 @@
 Revision history for Sentinel
 
+0.01_002 CHANGES:
+         * Support 'obj' for referent object context to callbacks
+         * Minor XS logic fixes
+
 0.01_001 First version, released on an unsuspecting world.
 

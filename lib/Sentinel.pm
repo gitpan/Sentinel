@@ -8,7 +8,7 @@ package Sentinel;
 use strict;
 use warnings;
 
-our $VERSION = '0.01_001';
+our $VERSION = '0.01_002';
 
 use Exporter 'import';
 our @EXPORT = qw( sentinel );
@@ -38,6 +38,14 @@ C<Sentinel> - create lightweight SCALARs with get/set callbacks
     my $self = shift;
     ${ \sentinel value => $self->get_another_attribute,
                  set   => sub { $self->set_attribute_name( $_[0] ) } };
+ }
+
+ sub yet_another_attribute :lvalue
+ {
+    my $self = shift;
+    ${ \sentinel obj => $self,
+                 get => \&get_attr,
+                 set => \&set_attr };
  }
 
 =head1 DESCRIPTION
@@ -77,6 +85,14 @@ If no C<get> callback is provided, this value is given as the initial value of
 the scalar. If the scalar manages to survive longer than a single assignment,
 its value on read will retain the last value set to it.
 
+=item obj => SCALAR
+
+Optional value to pass as the first argument into the C<get> and C<set>
+callbacks. If this value is provided, then the C<get> and C<set> callbacks may
+be given as direct sub references to object methods, rather than closures that
+capture the referent object. This avoids the runtime overhead of creating lots
+of small one-use closures around the object.
+
 =back
 
 The slightly awkward reference/dereference syntax of C<${ \sentinel ... }>
@@ -99,14 +115,6 @@ neater syntax of
 Currently this fails with the error
 
  Can't return a temporary from lvalue subroutine at ...
-
-=item *
-
-Add an C<obj> argument passed as the first argument to a C<get> or C<set>
-callback, so that plain function references can be stored, further reducing
-the overhead to avoid creating temporary closures.
-
- sentinel obj => $self, get => \&get_foo, set => \&set_foo;
 
 =back
 

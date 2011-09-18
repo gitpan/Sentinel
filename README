@@ -20,6 +20,14 @@ SYNOPSIS
                      set   => sub { $self->set_attribute_name( $_[0] ) } };
      }
 
+     sub yet_another_attribute :lvalue
+     {
+        my $self = shift;
+        ${ \sentinel obj => $self,
+                     get => \&get_attr,
+                     set => \&set_attr };
+     }
+
 DESCRIPTION
     This module provides a single lvalue function, "sentinel", which yields
     a scalar that invoke callbacks to get or set its value. Primarily this
@@ -50,6 +58,14 @@ FUNCTIONS
             longer than a single assignment, its value on read will retain
             the last value set to it.
 
+    obj => SCALAR
+            Optional value to pass as the first argument into the "get" and
+            "set" callbacks. If this value is provided, then the "get" and
+            "set" callbacks may be given as direct sub references to object
+            methods, rather than closures that capture the referent object.
+            This avoids the runtime overhead of creating lots of small
+            one-use closures around the object.
+
     The slightly awkward reference/dereference syntax of "${ \sentinel ...
     }" works around an as-yet-unresolved issue that, without it, an error is
     raised at runtime. See the "TODO" section below.
@@ -63,12 +79,6 @@ TODO
         Currently this fails with the error
 
          Can't return a temporary from lvalue subroutine at ...
-
-    *   Add an "obj" argument passed as the first argument to a "get" or
-        "set" callback, so that plain function references can be stored,
-        further reducing the overhead to avoid creating temporary closures.
-
-         sentinel obj => $self, get => \&get_foo, set => \&set_foo;
 
 AUTHOR
     Paul Evans <leonerd@leonerd.org.uk>
