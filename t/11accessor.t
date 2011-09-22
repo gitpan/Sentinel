@@ -16,9 +16,9 @@ sub set_foo { $_[0]->{foo} = $_[1] }
 sub foo :lvalue
 {
    my $self = shift;
-   ${ \sentinel obj => $self, 
-                get => \&get_foo,
-                set => \&set_foo }
+   sentinel obj => $self, 
+            get => \&get_foo,
+            set => \&set_foo;
 }
 
 package main;

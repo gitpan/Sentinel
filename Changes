@@ -1,5 +1,9 @@
 Revision history for Sentinel
 
+0.01_004 CHANGES:
+         * Apply some evil SvFLAGS hackery on perl versions before 5.14 to
+           make lvalue context propagation work correctly
+
 0.01_003 CHANGES:
          * Discovered that true lvalue context propagation does work on
            perl 5.14 - document this and unit test it

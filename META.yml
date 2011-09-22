@@ -18,7 +18,7 @@ name: Sentinel
 provides:
   Sentinel:
     file: lib/Sentinel.pm
-    version: 0.01_003
+    version: 0.01_004
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.01_003
+version: 0.01_004

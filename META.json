@@ -30,7 +30,7 @@
    "provides" : {
       "Sentinel" : {
          "file" : "lib/Sentinel.pm",
-         "version" : "0.01_003"
+         "version" : "0.01_004"
       }
    },
    "release_status" : "testing",
@@ -39,5 +39,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.01_003"
+   "version" : "0.01_004"
 }

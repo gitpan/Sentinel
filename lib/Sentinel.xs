@@ -99,13 +99,14 @@ MODULE = Sentinel    PACKAGE = Sentinel
 SV *
 sentinel(...)
   PREINIT:
-  int i;
+    int i;
     SV *value = NULL;
     SV *get_cb = NULL;
     SV *set_cb = NULL;
     SV *obj = NULL;
+    SV *retval;
 
-  CODE:
+  PPCODE:
     /* Parse name => value argument pairs */
     for(i = 0; i < items; i += 2) {
       char *argname  = SvPV_nolen(ST(i));
@@ -128,10 +129,21 @@ sentinel(...)
       }
     }
 
-    RETVAL = newSV(0);
+    retval = newSV(0);
+    sv_2mortal(retval);
+/**
+ * Perl 5.14 allows any TEMP scalar to be returned in LVALUE context provided
+ * it is magical. Perl versions before this only accept magic for being a tied
+ * array or hash element. Rather than try to hack this magic type, we'll just
+ * pretend the SV isn't a TEMP
+ * The following workaround is known to work on Perl 5.12.4.
+ */
+#if (PERL_REVISION == 5) && (PERL_VERSION < 14)
+    SvFLAGS(retval) &= ~SVs_TEMP;
+#endif
 
     if(value)
-      sv_setsv(RETVAL, value);
+      sv_setsv(retval, value);
 
     if(get_cb || set_cb) {
       sentinel_ctx *ctx;
@@ -143,11 +155,11 @@ sentinel(...)
       if(obj)
         obj = sv_mortalcopy(obj);
 
-      sv_magicext(RETVAL, obj, PERL_MAGIC_ext, &vtbl, (char *)ctx, 0);
+      sv_magicext(retval, obj, PERL_MAGIC_ext, &vtbl, (char *)ctx, 0);
     }
 
-  OUTPUT:
-    RETVAL
+    PUSHs(retval);
+    XSRETURN(1);
 
 BOOT:
   CvLVALUE_on(get_cv("Sentinel::sentinel", 0));

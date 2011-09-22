@@ -15,5 +15,4 @@ t/03set.t
 t/04obj.t
 t/10lvalue.t
 t/11accessor.t
-t/12lvalue-perl514.t
 t/99pod.t

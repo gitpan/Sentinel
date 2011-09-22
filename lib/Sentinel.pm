@@ -8,7 +8,7 @@ package Sentinel;
 use strict;
 use warnings;
 
-our $VERSION = '0.01_003';
+our $VERSION = '0.01_004';
 
 use Exporter 'import';
 our @EXPORT = qw( sentinel );
@@ -26,26 +26,23 @@ C<Sentinel> - create lightweight SCALARs with get/set callbacks
 
  use Sentinel;
 
- sub attribute_name :lvalue
+ sub foo :lvalue
  {
     my $self = shift;
-    sentinel get => sub { return $self->get_attribute_name },
-             set => sub { $self->set_attribute_name( $_[0] ) };
+    sentinel get => sub { return $self->get_foo },
+             set => sub { $self->set_foo( $_[0] ) };
  }
 
- sub another_attribute :lvalue
+ sub bar :lvalue
  {
     my $self = shift;
-    sentinel value => $self->get_another_attribute,
-             set   => sub { $self->set_attribute_name( $_[0] ) };
+    sentinel value => $self->get_bar,
+             set   => sub { $self->set_bar( $_[0] ) };
  }
 
- sub yet_another_attribute :lvalue
+ sub splot :lvalue
  {
-    my $self = shift;
-    sentinel obj => $self,
-             get => \&get_another_attribute,
-             set => \&set_another_attribute;
+    sentinel obj => shift, get => \&get_splot, set => \&set_splot;
  }
 
 =head1 DESCRIPTION
@@ -94,31 +91,6 @@ capture the referent object. This avoids the runtime overhead of creating lots
 of small one-use closures around the object.
 
 =back
-
-=head3 Important note
-
-The syntax used in the B<SYNOPSIS> only works on perl version 5.14 and above.
-Before version 5.14, the lvalue context is not properly propagated through
-nested lvalue functions and instead it dies at runtime with an exception
-
- Can't return a temporary from lvalue subroutine at ...
-
-To be compatible with prior versions of perl, you must instead write a
-slightly more awkward syntax, taking a C<SCALAR> ref to the sentinel return
-value then immediately dereferencing it again:
-
- sub attribute_name :lvalue
- {
-    my $self = shift;
-    ${ \sentinel get => sub { return $self->get_attribute_name },
-                 set => sub { $self->set_attribute_name( $_[0] ) } };
- }
-
-This is purely a workaround for older perl behaviour; if you do not need
-backward compatibility before perl 5.14, then you can yield C<sentinel>
-directly from an C<:lvalue> function.
-
-=cut
 
 =head1 AUTHOR
 
