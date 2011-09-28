@@ -8,7 +8,7 @@ package Sentinel;
 use strict;
 use warnings;
 
-our $VERSION = '0.01_004';
+our $VERSION = '0.02';
 
 use Exporter 'import';
 our @EXPORT = qw( sentinel );
@@ -91,6 +91,11 @@ capture the referent object. This avoids the runtime overhead of creating lots
 of small one-use closures around the object.
 
 =back
+
+=head1 ACKNOWLEDGEMENTS
+
+With thanks to C<leont>, C<Zefram>, and others from C<irc.perl.org/#p5p> for
+assisting with trickier bits of XS logic.
 
 =head1 AUTHOR
 

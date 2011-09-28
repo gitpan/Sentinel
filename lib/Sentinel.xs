@@ -116,10 +116,10 @@ sentinel(...)
         value = argvalue;
       }
       else if(streq(argname, "get")) {
-        get_cb = newSVsv(argvalue);
+        get_cb = argvalue;
       }
       else if(streq(argname, "set")) {
-        set_cb = newSVsv(argvalue);
+        set_cb = argvalue;
       }
       else if(streq(argname, "obj")) {
         obj = argvalue;
@@ -149,8 +149,8 @@ sentinel(...)
       sentinel_ctx *ctx;
       Newx(ctx, 1, sentinel_ctx);
 
-      ctx->get_cb = get_cb;
-      ctx->set_cb = set_cb;
+      ctx->get_cb = newSVsv(get_cb);
+      ctx->set_cb = newSVsv(set_cb);
 
       if(obj)
         obj = sv_mortalcopy(obj);

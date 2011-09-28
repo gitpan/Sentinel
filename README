@@ -63,6 +63,10 @@ FUNCTIONS
             This avoids the runtime overhead of creating lots of small
             one-use closures around the object.
 
+ACKNOWLEDGEMENTS
+    With thanks to "leont", "Zefram", and others from "irc.perl.org/#p5p"
+    for assisting with trickier bits of XS logic.
+
 AUTHOR
     Paul Evans <leonerd@leonerd.org.uk>
 

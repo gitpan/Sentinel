@@ -1,5 +1,8 @@
 Revision history for Sentinel
 
+0.02    CHANGES:
+         * Non-development release
+
 0.01_004 CHANGES:
          * Apply some evil SvFLAGS hackery on perl versions before 5.14 to
            make lvalue context propagation work correctly
