@@ -8,7 +8,7 @@ package Sentinel;
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Exporter 'import';
 our @EXPORT = qw( sentinel );
@@ -58,9 +58,6 @@ scalar that invoke callbacks to get or set its value. Primarily this is useful
 to create lvalue object accessors or other functions, to invoke actual code
 when a new value is set, rather than simply updating a scalar variable.
 
-If an XS compiler is available at build time, this module is implemented using
-XS. If not, it falls back on an implementation using a C<tie>d scalar.
-
 =cut
 
 =head1 FUNCTIONS
@@ -100,6 +97,16 @@ capture the referent object. This avoids the runtime overhead of creating lots
 of small one-use closures around the object.
 
 =back
+
+=head1 XS vs PUREPERL
+
+If an XS compiler is available at build time, this module is implemented using
+XS. If not, it falls back on an implementation using a C<tie>d scalar. A
+pureperl installation can also be requested at build time by passing the
+C<--pp> argument to F<Build.PL>:
+
+ $ perl Build.PL --pp
+ $ ./Build
 
 =head1 ACKNOWLEDGEMENTS
 

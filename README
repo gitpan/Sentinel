@@ -32,10 +32,6 @@ DESCRIPTION
     invoke actual code when a new value is set, rather than simply updating
     a scalar variable.
 
-    If an XS compiler is available at build time, this module is implemented
-    using XS. If not, it falls back on an implementation using a `tie'd
-    scalar.
-
 FUNCTIONS
   $scalar = sentinel %args
     Returns (as an lvalue) a scalar with magic attached to it. This magic is
@@ -66,6 +62,15 @@ FUNCTIONS
             methods, rather than closures that capture the referent object.
             This avoids the runtime overhead of creating lots of small
             one-use closures around the object.
+
+XS vs PUREPERL
+    If an XS compiler is available at build time, this module is implemented
+    using XS. If not, it falls back on an implementation using a `tie'd
+    scalar. A pureperl installation can also be requested at build time by
+    passing the `--pp' argument to Build.PL:
+
+     $ perl Build.PL --pp
+     $ ./Build
 
 ACKNOWLEDGEMENTS
     With thanks to `leont', `Zefram', and others from `irc.perl.org/#p5p'
