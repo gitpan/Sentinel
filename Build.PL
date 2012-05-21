@@ -12,6 +12,9 @@ my $build = Module::Build->new(
       'Test::More' => 0,
       'Test::Refcount' => 0,
    },
+   requires => {
+      perl => '5.008008',
+   },
    license => 'perl',
    create_makefile_pl => 'small',
    create_license => 1,

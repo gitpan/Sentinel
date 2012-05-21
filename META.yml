@@ -8,7 +8,8 @@ build_requires:
   Test::Refcount: 0
 configure_requires:
   Module::Build: 0
-generated_by: 'Module::Build version 0.3603'
+dynamic_config: 1
+generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.120630'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -17,7 +18,9 @@ name: Sentinel
 provides:
   Sentinel:
     file: lib/Sentinel.pm
-    version: 0.02
+    version: 0.03
+requires:
+  perl: 5.008008
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.02
+version: 0.03

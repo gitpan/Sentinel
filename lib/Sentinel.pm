@@ -1,20 +1,26 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2011 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2011-2012 -- leonerd@leonerd.org.uk
 
 package Sentinel;
 
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Exporter 'import';
 our @EXPORT = qw( sentinel );
 
-require XSLoader;
-XSLoader::load( __PACKAGE__, $VERSION );
+eval {
+   require XSLoader;
+   XSLoader::load( __PACKAGE__, $VERSION );
+} or do {
+   # pureperl fallback
+   no warnings 'redefine';
+   *sentinel = \&Sentinel::PP::sentinel;
+};
 
 =head1 NAME
 
@@ -51,6 +57,9 @@ This module provides a single lvalue function, C<sentinel>, which yields a
 scalar that invoke callbacks to get or set its value. Primarily this is useful
 to create lvalue object accessors or other functions, to invoke actual code
 when a new value is set, rather than simply updating a scalar variable.
+
+If an XS compiler is available at build time, this module is implemented using
+XS. If not, it falls back on an implementation using a C<tie>d scalar.
 
 =cut
 
@@ -95,12 +104,45 @@ of small one-use closures around the object.
 =head1 ACKNOWLEDGEMENTS
 
 With thanks to C<leont>, C<Zefram>, and others from C<irc.perl.org/#p5p> for
-assisting with trickier bits of XS logic.
+assisting with trickier bits of XS logic. Thanks to C<mst> for suggesting a
+pureperl implementation for XS-challenged systems.
 
 =head1 AUTHOR
 
 Paul Evans <leonerd@leonerd.org.uk>
 
 =cut
+
+package # Hide from CPAN
+   Sentinel::PP;
+
+sub sentinel :lvalue
+{
+   my %args = @_;
+   tie my $scalar, "Sentinel::PP", $args{value}, $args{get}, $args{set}, $args{obj};
+   $scalar;
+}
+
+use constant { VALUE => 0, GET => 1, SET => 2, OBJ => 3 };
+sub TIESCALAR
+{
+   my $class = shift;
+   bless [ @_ ], $class;
+}
+
+sub FETCH
+{
+   my $self = shift;
+   return $self->[GET]->( $self->[OBJ] ? ( $self->[OBJ] ) : () ) if $self->[GET];
+   return $self->[VALUE];
+}
+
+sub STORE
+{
+   my $self = shift;
+   my ( $value ) = @_;
+   $self->[SET]->( $self->[OBJ] ? ( $self->[OBJ] ) : (), $value ) if $self->[SET];
+   $self->[VALUE] = $value;
+}
 
 0x55AA;

@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 package TestObject;
 use Sentinel;
@@ -37,3 +37,7 @@ $obj->foo = "Goodbye";
 
 is( $obj->get_foo, "Goodbye", '$obj->get_foo after set via lvalue' );
 is( $obj->foo,     "Goodbye", '$obj->foo after set via lvalue' );
+
+$obj->foo .= " world!";
+
+is( $obj->get_foo, "Goodbye world!", '$obj->foo allows mutator operators' );

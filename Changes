@@ -1,5 +1,10 @@
 Revision history for Sentinel
 
+0.03    CHANGES:
+         * Provide a fallback pureperl implementation using TIESCALAR if XS
+           cannot be loaded (thanks mst)
+         * More unit tests
+
 0.02    CHANGES:
          * Non-development release
 
