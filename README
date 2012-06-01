@@ -25,6 +25,11 @@ SYNOPSIS
         sentinel obj => shift, get => \&get_splot, set => \&set_splot;
      }
 
+     sub wibble :lvalue
+     {
+        sentinel obj => shift, get => "get_wibble", set => "set_wibble";
+     }
+
 DESCRIPTION
     This module provides a single lvalue function, `sentinel', which yields
     a scalar that invoke callbacks to get or set its value. Primarily this
@@ -40,14 +45,14 @@ FUNCTIONS
     following named arguments:
 
     get => CODE
-            A `CODE' reference to invoke when the value of the scalar is
-            read, to obtain its value. The value returned from this code
-            will appear as the value of the scalar.
+            A `CODE' reference or `obj' method name to invoke when the value
+            of the scalar is read, to obtain its value. The value returned
+            from this code will appear as the value of the scalar.
 
     set => CODE
-            A `CODE' reference to invoke when a new value for the scalar is
-            written. The code will be passed the new value as its only
-            argument.
+            A `CODE' reference or `obj' method name to invoke when a new
+            value for the scalar is written. The code will be passed the new
+            value as its only argument.
 
     value => SCALAR
             If no `get' callback is provided, this value is given as the
@@ -59,9 +64,34 @@ FUNCTIONS
             Optional value to pass as the first argument into the `get' and
             `set' callbacks. If this value is provided, then the `get' and
             `set' callbacks may be given as direct sub references to object
-            methods, rather than closures that capture the referent object.
-            This avoids the runtime overhead of creating lots of small
-            one-use closures around the object.
+            methods, or simply method names, rather than closures that
+            capture the referent object. This avoids the runtime overhead of
+            creating lots of small one-use closures around the object.
+
+MUTATION ACCESSORS
+    A useful behaviour of this module is generation of mutation accessor
+    methods that automatically wrap `get_'/`set_' accessor/mutator pairs:
+
+     foreach (qw( name address age height )) {
+        my $name = $_;
+
+        no strict 'refs';
+        *$name = sub :lvalue {
+           sentinel obj => shift, get => "get_$name", set => "set_$name";
+        };
+     }
+
+    This is especially useful for methods whose values are simple strings or
+    numbers, because they allow Perl's rich set of mutation operators to be
+    applied to the object's values.
+
+     $obj->name =~ s/-/_/g;
+
+     substr( $obj->address, 100 ) = "";
+
+     $obj->age++;
+
+     $obj->height /= 100;
 
 XS vs PUREPERL
     If an XS compiler is available at build time, this module is implemented

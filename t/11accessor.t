@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 9;
 
 package TestObject;
 use Sentinel;
@@ -19,6 +19,14 @@ sub foo :lvalue
    sentinel obj => $self, 
             get => \&get_foo,
             set => \&set_foo;
+}
+
+sub foo_named :lvalue
+{
+   my $self = shift;
+   sentinel obj => $self,
+            get => "get_foo",
+            set => "set_foo";
 }
 
 package main;
@@ -41,3 +49,9 @@ is( $obj->foo,     "Goodbye", '$obj->foo after set via lvalue' );
 $obj->foo .= " world!";
 
 is( $obj->get_foo, "Goodbye world!", '$obj->foo allows mutator operators' );
+
+is( $obj->foo_named, "Goodbye world!", '$obj->foo_named performs method name lookup' );
+
+$obj->foo_named = "Another message";
+
+is( $obj->get_foo, "Another message", '$obj->get_foo after set via lvalue named' );

@@ -8,7 +8,7 @@ package Sentinel;
 use strict;
 use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Exporter 'import';
 our @EXPORT = qw( sentinel );
@@ -51,6 +51,11 @@ C<Sentinel> - create lightweight SCALARs with get/set callbacks
     sentinel obj => shift, get => \&get_splot, set => \&set_splot;
  }
 
+ sub wibble :lvalue
+ {
+    sentinel obj => shift, get => "get_wibble", set => "set_wibble";
+ }
+
 =head1 DESCRIPTION
 
 This module provides a single lvalue function, C<sentinel>, which yields a
@@ -73,14 +78,14 @@ named arguments:
 
 =item get => CODE
 
-A C<CODE> reference to invoke when the value of the scalar is read, to obtain
-its value. The value returned from this code will appear as the value of the
-scalar.
+A C<CODE> reference or C<obj> method name to invoke when the value of the
+scalar is read, to obtain its value. The value returned from this code will
+appear as the value of the scalar.
 
 =item set => CODE
 
-A C<CODE> reference to invoke when a new value for the scalar is written. The
-code will be passed the new value as its only argument.
+A C<CODE> reference or C<obj> method name to invoke when a new value for the
+scalar is written. The code will be passed the new value as its only argument.
 
 =item value => SCALAR
 
@@ -92,11 +97,37 @@ its value on read will retain the last value set to it.
 
 Optional value to pass as the first argument into the C<get> and C<set>
 callbacks. If this value is provided, then the C<get> and C<set> callbacks may
-be given as direct sub references to object methods, rather than closures that
-capture the referent object. This avoids the runtime overhead of creating lots
-of small one-use closures around the object.
+be given as direct sub references to object methods, or simply method names,
+rather than closures that capture the referent object. This avoids the runtime
+overhead of creating lots of small one-use closures around the object.
 
 =back
+
+=head1 MUTATION ACCESSORS
+
+A useful behaviour of this module is generation of mutation accessor methods
+that automatically wrap C<get_>/C<set_> accessor/mutator pairs:
+
+ foreach (qw( name address age height )) {
+    my $name = $_;
+
+    no strict 'refs';
+    *$name = sub :lvalue {
+       sentinel obj => shift, get => "get_$name", set => "set_$name";
+    };
+ }
+
+This is especially useful for methods whose values are simple strings or
+numbers, because they allow Perl's rich set of mutation operators to be
+applied to the object's values.
+
+ $obj->name =~ s/-/_/g;
+
+ substr( $obj->address, 100 ) = "";
+
+ $obj->age++;
+
+ $obj->height /= 100;
 
 =head1 XS vs PUREPERL
 
@@ -140,15 +171,34 @@ sub TIESCALAR
 sub FETCH
 {
    my $self = shift;
-   return $self->[GET]->( $self->[OBJ] ? ( $self->[OBJ] ) : () ) if $self->[GET];
-   return $self->[VALUE];
+   my $get = $self->[GET];
+   my $obj = $self->[OBJ];
+   if( defined $get and !ref $get and defined $obj ) {
+      # Method
+      return $obj->$get;
+   }
+   elsif( defined $get ) {
+      return $get->( defined $obj ? ( $obj ) : () );
+   }
+   else {
+      return $self->[VALUE];
+   }
 }
 
 sub STORE
 {
    my $self = shift;
    my ( $value ) = @_;
-   $self->[SET]->( $self->[OBJ] ? ( $self->[OBJ] ) : (), $value ) if $self->[SET];
+   my $set = $self->[SET];
+   my $obj = $self->[OBJ];
+   if( defined $set and !ref $set and defined $obj ) {
+      # Method
+      $obj->$set( $value );
+   }
+   elsif( defined $set ) {
+      $set->( defined $obj ? ( $obj ) : (), $value );
+   }
+
    $self->[VALUE] = $value;
 }
 

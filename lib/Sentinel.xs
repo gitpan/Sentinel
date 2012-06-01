@@ -32,7 +32,11 @@ static int magic_get(pTHX_ SV *sv, MAGIC *mg)
       PUSHs(mg->mg_obj);
     PUTBACK;
 
-    count = call_sv(ctx->get_cb, G_SCALAR);
+    if(mg->mg_obj && SvPOK(ctx->get_cb))
+      // Calling method by name
+      count = call_method(SvPV_nolen(ctx->get_cb), G_SCALAR);
+    else
+      count = call_sv(ctx->get_cb, G_SCALAR);
     assert(count == 1);
 
     SPAGAIN;
@@ -61,7 +65,11 @@ static int magic_set(pTHX_ SV *sv, MAGIC *mg)
     PUSHs(sv);
     PUTBACK;
 
-    call_sv(ctx->set_cb, G_VOID);
+    if(mg->mg_obj && SvPOK(ctx->set_cb))
+      // Calling method by name
+      call_method(SvPV_nolen(ctx->set_cb), G_VOID);
+    else
+      call_sv(ctx->set_cb, G_VOID);
 
     SPAGAIN;
 
